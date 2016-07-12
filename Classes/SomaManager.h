@@ -12,6 +12,9 @@ public:
 
 	//value 값에 따라 '소' 또는 '마'를 차례대로 출력한다.
 	void printWords(const unsigned int value,int length);
+	void hideAllWords();
+	//맨 뒤의 한개의 word를 visible로 바꾼다.
+	void showWord();
 
 	CREATE_FUNC(SomaWordViewer);
 };

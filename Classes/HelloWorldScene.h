@@ -13,6 +13,9 @@ class HelloWorld : public cocos2d::Layer
 	cocos2d::Label* score_label;
 	cocos2d::ProgressTimer* timer;
 	float fTime;
+
+	cocos2d::ui::Button* btn_so;
+	cocos2d::ui::Button* btn_ma;
 public:
     static cocos2d::Scene* createScene();
 
@@ -27,7 +30,11 @@ public:
 	void update(float dt);
 	void gameOver();
 
+	void correctCheck(int type);
 	void correctWord();
+	void uncorrectWord();
+
+	void imgEffect(std::string path);
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
 };

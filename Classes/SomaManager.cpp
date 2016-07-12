@@ -44,6 +44,24 @@ outLoop:
 	return;
 }
 
+void SomaWordViewer::hideAllWords()
+{
+	for (const auto& child : _children)
+		child->setVisible(false);
+}
+
+void SomaWordViewer::showWord()
+{
+	for (const auto& child : _children)
+	{
+		if (!child->isVisible())
+		{
+			child->setVisible(true);
+			break;
+		}
+	}
+}
+
 unsigned int SomaWordManager::getCurrentQuestion() const
 {
 	return currentQuestion;
@@ -83,7 +101,7 @@ bool SomaWordManager::isAllCorrect()
 void SomaWordManager::refresh()
 {
 	level++;
-
+	numberOfCorrect = 0;
 }
 
 bool SomaWordManager::init()

@@ -40,30 +40,27 @@ bool HelloWorld::init()
     // add the sprite as a child to this layer
     this->addChild(sprite, 0);
     
-	auto btn_so = Button::create("btn_so.png");
+	btn_so = Button::create("btn_so.png");
 	btn_so->setPosition(Vec2(130, 150));
 	btn_so->setZoomScale(0.7f);
 	btn_so->addTouchEventListener([&](Ref*,Widget::TouchEventType e) {
 		if (e == Widget::TouchEventType::BEGAN)
-			SimpleAudioEngine::getInstance()->playEffect("sound/so.ogg");
-
-		//문제를 맞추는 중이면
-		if (timer->getTag() == 1)
 		{
-			if (swagManager->isCorrect(0))
-				correctWord();
-			else
-				uncorrectWord();
+			SimpleAudioEngine::getInstance()->playEffect("sound/so.ogg");
+			correctCheck(0);
 		}
 	});
 	addChild(btn_so);
 
-	auto btn_ma = Button::create("btn_ma.png");
+	btn_ma = Button::create("btn_ma.png");
 	btn_ma->setPosition(Vec2(350, 150));
 	btn_ma->setZoomScale(0.7f); 
 	btn_ma->addTouchEventListener([&](Ref*, Widget::TouchEventType e) {
-		if(e == Widget::TouchEventType::BEGAN)
+		if (e == Widget::TouchEventType::BEGAN)
+		{
 			SimpleAudioEngine::getInstance()->playEffect("sound/ma.ogg");
+			correctCheck(1);
+		}
 	});
 
 	addChild(btn_ma);
@@ -85,7 +82,7 @@ bool HelloWorld::init()
 
 	setTimerPercent(100.0f,0);
 
-	addChild(timer, 5);
+	addChild(timer);
 
 	//score view
 	score_label = Label::createWithTTF("0", "fonts/font.ttf", 50.0f,Size::ZERO);
@@ -119,12 +116,12 @@ void HelloWorld::setTimerPercent(float percent, int timerType)
 	if (timerType == 0)
 	{
 		timer->setTag(0);
-		timer->setColor(Color3B::RED);
+		timer->setColor(Color3B::GREEN);
 		fTime = swagManager->getCurrentWordShowTime();
 	}
 	else {
 		timer->setTag(1);
-		timer->setColor(Color3B::GREEN);
+		timer->setColor(Color3B::RED);
 		fTime = swagManager->getCurrentWaitTime();
 	}
 
@@ -135,9 +132,14 @@ void HelloWorld::setTimerPercent(float percent, int timerType)
 
 void HelloWorld::refreshQuestion()
 {
-	somaWordViewer->setVisible(true);
+	setTimerPercent(100.0f, 0);
+
+	swagManager->refresh();
 
 	somaWordViewer->printWords(swagManager->getCurrentQuestion(), swagManager->getCurrentLength());
+
+	btn_so->setVisible(false);
+	btn_ma->setVisible(false);
 }
 
 void HelloWorld::update(float dt)
@@ -148,7 +150,10 @@ void HelloWorld::update(float dt)
 		if (timer->getTag() == 0)
 		{
 			setTimerPercent(100.0f, 1);
-			somaWordViewer->setVisible(false);
+			somaWordViewer->hideAllWords();
+
+			btn_so->setVisible(true);
+			btn_ma->setVisible(true);
 		}
 		else if (timer->getTag() == 1) // 맞춰야 하는 상태
 		{
@@ -163,12 +168,56 @@ void HelloWorld::gameOver()
 	swagManager->release();
 }
 
+void HelloWorld::correctCheck(int type)
+{
+	if (timer->getTag() == 1)
+	{
+		if (swagManager->isCorrect(type))
+		{
+			correctWord();
+			somaWordViewer->showWord();
+
+			if (swagManager->isAllCorrect())
+			{
+				addScore(100);
+				refreshQuestion();
+			}
+		}
+		else
+			uncorrectWord();
+	}
+}
+
 void HelloWorld::correctWord()
 {
+	std::string path = "awesome/" + StringUtils::format("%d", random(1, 9)) + ".png";
+	imgEffect(path);
 }
 
 void HelloWorld::uncorrectWord()
 {
+	std::string path = "bad/" + StringUtils::format("%d", random(1, 14)) + ".png";
+	imgEffect(path);
+	imgEffect("bad_screen.png");
+
+	Device::vibrate(0.1f);
+}
+
+void HelloWorld::imgEffect(std::string path)
+{
+	auto corSpr = Sprite::create(path);
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+
+	corSpr->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+	auto removeAction = CallFuncN::create([&](Node* n) {
+		n->removeFromParent();
+	});
+
+	auto action = Spawn::createWithTwoActions(ScaleTo::create(0.5f, 2.0f), FadeOut::create(0.5f));
+	auto seqAction = Sequence::createWithTwoActions(action, removeAction);
+
+	corSpr->runAction(seqAction);
+	addChild(corSpr);
 }
 
 void HelloWorld::addScore(int delta)
