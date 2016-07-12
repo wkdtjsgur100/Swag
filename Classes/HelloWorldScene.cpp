@@ -74,13 +74,9 @@ bool HelloWorld::init()
 	timer->setBarChangeRate(Vec2(1, 0));
 	timer->setMidpoint(Vec2(0, 1));
 	timer->setPosition(visibleSize.width*0.5, 700);
-
-	fTime = 20.0f;			//제한시간 20초
-
-	timer->stopAllActions();
-	timer->setTag(0);
-
-	setTimerPercent(100.0f,0);
+	
+	changeTimerType(0);
+	setTimerPercent(100.0f);
 
 	addChild(timer);
 
@@ -106,13 +102,19 @@ bool HelloWorld::init()
     return true;
 }
 
-void HelloWorld::setTimerPercent(float percent, int timerType)
+void HelloWorld::setTimerPercent(float percent)
 {
 	timer->stopAllActions();
 
 	timer->setPercentage(percent);
 
-	float fTime;
+	auto *progressToZero = ProgressFromTo::create(fTime*(percent / 100.0f), percent, 0);
+
+	timer->runAction(progressToZero);
+}
+
+void HelloWorld::changeTimerType(int timerType)
+{
 	if (timerType == 0)
 	{
 		timer->setTag(0);
@@ -124,15 +126,12 @@ void HelloWorld::setTimerPercent(float percent, int timerType)
 		timer->setColor(Color3B::RED);
 		fTime = swagManager->getCurrentWaitTime();
 	}
-
-	auto *progressToZero = ProgressFromTo::create(fTime*(percent / 100.0f), percent, 0);
-
-	timer->runAction(progressToZero);
 }
 
 void HelloWorld::refreshQuestion()
 {
-	setTimerPercent(100.0f, 0);
+	changeTimerType(0);
+	setTimerPercent(100.0f);
 
 	swagManager->refresh();
 
@@ -149,7 +148,9 @@ void HelloWorld::update(float dt)
 		//보여주는 타이머 상태
 		if (timer->getTag() == 0)
 		{
-			setTimerPercent(100.0f, 1);
+			changeTimerType(1);
+			setTimerPercent(100.0f);
+
 			somaWordViewer->hideAllWords();
 
 			btn_so->setVisible(true);
@@ -201,6 +202,7 @@ void HelloWorld::uncorrectWord()
 	imgEffect("bad_screen.png");
 
 	Device::vibrate(0.1f);
+	setTimerPercent(timer->getPercentage() - 30.0f);
 }
 
 void HelloWorld::imgEffect(std::string path)

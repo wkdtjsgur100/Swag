@@ -24,8 +24,11 @@ public:
     // a selector callback
 	void addScore(int delta);
     void menuCloseCallback(cocos2d::Ref* pSender);
+	void setTimerPercent(float percent);
+
 	//timerType : 0 이면 보여주는 상태, 1이면 맞추는 상태
-	void setTimerPercent(float percent,int timerType);
+	void changeTimerType(int timerType);
+
 	void refreshQuestion();
 	void update(float dt);
 	void gameOver();

@@ -102,6 +102,10 @@ void SomaWordManager::refresh()
 {
 	level++;
 	numberOfCorrect = 0;
+	wordLength = 4 + level / 5;
+	wordShowTime = 3.0f + (wordLength-4)*0.1f - level / 10.0f;
+
+	currentQuestion = random(0, (1 << wordLength+1) - 1);
 }
 
 bool SomaWordManager::init()
