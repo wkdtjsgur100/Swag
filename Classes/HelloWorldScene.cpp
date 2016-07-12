@@ -1,7 +1,9 @@
 #include "HelloWorldScene.h"
+#include "SimpleAudioEngine.h"
 
 USING_NS_CC;
 using namespace ui;
+using namespace CocosDenshion;
 
 Scene* HelloWorld::createScene()
 {
@@ -41,12 +43,33 @@ bool HelloWorld::init()
 	auto btn_so = Button::create("btn_so.png");
 	btn_so->setPosition(Vec2(130, 150));
 	btn_so->setZoomScale(0.7f);
+	btn_so->addTouchEventListener([&](Ref*,Widget::TouchEventType e) {
+		if (e == Widget::TouchEventType::BEGAN)
+			SimpleAudioEngine::getInstance()->playEffect("sound/so.ogg");
+
+		//문제를 맞추는 중이면
+		if (timer->getTag() == 1)
+		{
+			if (swagManager->isCorrect(0))
+				correctWord();
+			else
+				uncorrectWord();
+		}
+	});
 	addChild(btn_so);
 
 	auto btn_ma = Button::create("btn_ma.png");
 	btn_ma->setPosition(Vec2(350, 150));
 	btn_ma->setZoomScale(0.7f); 
+	btn_ma->addTouchEventListener([&](Ref*, Widget::TouchEventType e) {
+		if(e == Widget::TouchEventType::BEGAN)
+			SimpleAudioEngine::getInstance()->playEffect("sound/ma.ogg");
+	});
+
 	addChild(btn_ma);
+
+	swagManager = SomaWordManager::create();
+	swagManager->retain();
 
 	timer = ProgressTimer::create(Sprite::create("timer.png"));
 
@@ -58,8 +81,9 @@ bool HelloWorld::init()
 	fTime = 20.0f;			//제한시간 20초
 
 	timer->stopAllActions();
+	timer->setTag(0);
 
-	setTimerPercent(100.0f);
+	setTimerPercent(100.0f,0);
 
 	addChild(timer, 5);
 
@@ -77,16 +101,32 @@ bool HelloWorld::init()
 	
 	addChild(somaWordViewer);
 
-	somaWordViewer->printWords(1251025);
+	refreshQuestion();
+
+	SimpleAudioEngine::getInstance()->playBackgroundMusic("sound/background.wav", true);
+	scheduleUpdate();
 
     return true;
 }
 
-void HelloWorld::setTimerPercent(float percent)
+void HelloWorld::setTimerPercent(float percent, int timerType)
 {
 	timer->stopAllActions();
 
 	timer->setPercentage(percent);
+
+	float fTime;
+	if (timerType == 0)
+	{
+		timer->setTag(0);
+		timer->setColor(Color3B::RED);
+		fTime = swagManager->getCurrentWordShowTime();
+	}
+	else {
+		timer->setTag(1);
+		timer->setColor(Color3B::GREEN);
+		fTime = swagManager->getCurrentWaitTime();
+	}
 
 	auto *progressToZero = ProgressFromTo::create(fTime*(percent / 100.0f), percent, 0);
 
@@ -95,7 +135,40 @@ void HelloWorld::setTimerPercent(float percent)
 
 void HelloWorld::refreshQuestion()
 {
+	somaWordViewer->setVisible(true);
 
+	somaWordViewer->printWords(swagManager->getCurrentQuestion(), swagManager->getCurrentLength());
+}
+
+void HelloWorld::update(float dt)
+{
+	if (timer->getPercentage() <= 0.0f)
+	{
+		//보여주는 타이머 상태
+		if (timer->getTag() == 0)
+		{
+			setTimerPercent(100.0f, 1);
+			somaWordViewer->setVisible(false);
+		}
+		else if (timer->getTag() == 1) // 맞춰야 하는 상태
+		{
+			gameOver();
+			unscheduleUpdate();
+		}
+	}
+}
+
+void HelloWorld::gameOver()
+{
+	swagManager->release();
+}
+
+void HelloWorld::correctWord()
+{
+}
+
+void HelloWorld::uncorrectWord()
+{
 }
 
 void HelloWorld::addScore(int delta)

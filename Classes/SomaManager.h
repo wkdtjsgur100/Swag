@@ -11,8 +11,7 @@ public:
 	bool init() override;
 
 	//value °ª¿¡ µû¶ó '¼Ò' ¶Ç´Â '¸¶'¸¦ Â÷·Ê´ë·Î Ãâ·ÂÇÑ´Ù.
-	void printWords(const unsigned int value);
-	void hideWords();
+	void printWords(const unsigned int value,int length);
 
 	CREATE_FUNC(SomaWordViewer);
 };
@@ -23,12 +22,21 @@ class SomaWordManager : public cocos2d::Ref
 	float wordShowTime;
 	float correctWaitTime;
 	int wordLength;
+	int level;
+
+	//¸ÂÃá°³¼ö
+	int numberOfCorrect;
 public:
 	unsigned int getCurrentQuestion() const;
 	float getCurrentWordShowTime() const;
 	float getCurrentWaitTime() const;
+	float getCurrentLength() const;
 
-	void levelUp();
+	bool isCorrect(const int value);
+	//´Ù ¸Â­Ÿ´Ï?
+	bool isAllCorrect();
+
+	void refresh();
 
 	bool init();
 	CREATE_FUNC(SomaWordManager);

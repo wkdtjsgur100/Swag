@@ -10,7 +10,7 @@ bool SomaWordViewer::init()
 	return true;
 }
 
-void SomaWordViewer::printWords(const unsigned int value)
+void SomaWordViewer::printWords(const unsigned int value,int length)
 {
 	unsigned int cpy_value = value;
 
@@ -35,18 +35,13 @@ void SomaWordViewer::printWords(const unsigned int value)
 			addChild(newSpr);
 			cpy_value >>= 1; 
 			
-			if (cpy_value == 0)
+			length--;
+			if (length == 0)
 				goto outLoop;
 		}
 	}
 outLoop:
 	return;
-}
-
-void SomaWordViewer::hideWords()
-{
-	for (const auto& child : _children)
-		child->setVisible(false);
 }
 
 unsigned int SomaWordManager::getCurrentQuestion() const
@@ -64,15 +59,42 @@ float SomaWordManager::getCurrentWaitTime() const
 	return correctWaitTime;
 }
 
-void SomaWordManager::levelUp()
+float SomaWordManager::getCurrentLength() const
 {
+	return wordLength;
+}
+
+bool SomaWordManager::isCorrect(const int value)
+{
+	if (((currentQuestion >> numberOfCorrect) & 1) == value)
+	{
+		numberOfCorrect++;
+		return true;
+	}
+	else
+		return false;
+}
+
+bool SomaWordManager::isAllCorrect()
+{
+	return numberOfCorrect >= wordLength;
+}
+
+void SomaWordManager::refresh()
+{
+	level++;
 
 }
 
 bool SomaWordManager::init()
 {
+	currentQuestion = 2;
 	wordShowTime = 2.0f;
 	correctWaitTime = 20.0f;
-	wordLength = 4;
+	wordLength = 2;
+	level = 1;
+	numberOfCorrect = 0;
+
+	return true;
 }
 

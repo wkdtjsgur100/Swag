@@ -8,6 +8,7 @@
 class HelloWorld : public cocos2d::Layer
 {
 	SomaWordViewer* somaWordViewer;
+	SomaWordManager* swagManager;
 	int score;
 	cocos2d::Label* score_label;
 	cocos2d::ProgressTimer* timer;
@@ -20,9 +21,13 @@ public:
     // a selector callback
 	void addScore(int delta);
     void menuCloseCallback(cocos2d::Ref* pSender);
-	void setTimerPercent(float percent);
+	//timerType : 0 이면 보여주는 상태, 1이면 맞추는 상태
+	void setTimerPercent(float percent,int timerType);
 	void refreshQuestion();
+	void update(float dt);
+	void gameOver();
 
+	void correctWord();
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
 };
