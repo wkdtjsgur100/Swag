@@ -19,6 +19,8 @@ class HelloWorld : public cocos2d::Layer
 public:
     static cocos2d::Scene* createScene();
 
+	void onEnterTransitionDidFinish() override;
+
     virtual bool init();
     
     // a selector callback

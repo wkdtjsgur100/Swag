@@ -1,5 +1,6 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
+#include "MainScene.h"
 
 USING_NS_CC;
 using namespace ui;
@@ -18,6 +19,13 @@ Scene* HelloWorld::createScene()
 
     // return the scene
     return scene;
+}
+
+void HelloWorld::onEnterTransitionDidFinish()
+{
+	Layer::onEnterTransitionDidFinish();
+
+	refreshQuestion();
 }
 
 // on "init" you need to initialize your instance
@@ -74,9 +82,8 @@ bool HelloWorld::init()
 	timer->setBarChangeRate(Vec2(1, 0));
 	timer->setMidpoint(Vec2(0, 1));
 	timer->setPosition(visibleSize.width*0.5, 700);
-	
-	changeTimerType(0);
-	setTimerPercent(100.0f);
+
+	timer->stopAllActions();
 
 	addChild(timer);
 
@@ -93,8 +100,6 @@ bool HelloWorld::init()
 	somaWordViewer = SomaWordViewer::create();
 	
 	addChild(somaWordViewer);
-
-	refreshQuestion();
 
 	SimpleAudioEngine::getInstance()->playBackgroundMusic("sound/background.wav", true);
 	scheduleUpdate();
@@ -166,7 +171,56 @@ void HelloWorld::update(float dt)
 
 void HelloWorld::gameOver()
 {
+
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+
+	auto overBox = Sprite::create("game_over/box.png");
+
+	overBox->setPosition(visibleSize.width / 2, visibleSize.height + overBox->getContentSize().height / 2);
+
+	auto btnOk = Button::create("game_over/ok_button.png");
+	auto retryBtn = Button::create("game_over/retry_button.png");
+
+	btnOk->setPosition(Vec2(110, 55));
+	btnOk->addTouchEventListener([&](Ref*, Widget::TouchEventType e) {
+		if (e == Widget::TouchEventType::ENDED)
+		{
+			auto scene = TransitionPageTurn::create(1.0f, MainScene::createScene(), true);
+			Director::getInstance()->replaceScene(scene);
+		}
+	});
+	
+	retryBtn->setPosition(Vec2(300, 55));
+
+	retryBtn->addTouchEventListener([&](Ref*, Widget::TouchEventType e) {
+		if (e == Widget::TouchEventType::ENDED)
+		{
+			auto scene = TransitionFlipX::create(1.0f, HelloWorld::createScene(),
+				TransitionScene::Orientation::RIGHT_OVER);
+			Director::getInstance()->replaceScene(scene);
+		}
+	});
+
+	overBox->addChild(btnOk);
+	overBox->addChild(retryBtn);
+
+	auto score_lb = Label::createWithTTF(score_label->getString(), "fonts/font.ttf", 50.0f, Size::ZERO);
+
+	score_lb->setPosition(262, 235);
+	overBox->addChild(score_lb);
+	addChild(overBox);
+
+	auto actToCenter = MoveTo::create(1.0f, Vec2(visibleSize.width / 2, visibleSize.height/2));
+	auto bezier = EaseBounceOut::create(actToCenter);
+
+	overBox->runAction(bezier);
+	////
+
+	btn_so->setVisible(false);
+	btn_ma->setVisible(false);
+
 	swagManager->release();
+	this->pause();
 }
 
 void HelloWorld::correctCheck(int type)
